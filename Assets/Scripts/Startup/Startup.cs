@@ -7,11 +7,11 @@ namespace Startup
     {
         [SerializeField] private LevelGenerator _levelGenerator;
         [SerializeField] private SaveLoadService _saveLoadService;
-        [SerializeField] private bool _loadSaveFile;
+        [SerializeField] private bool _useSaveLoadLogic;
         
         private void Start()
         {
-            if (_loadSaveFile && _saveLoadService.TryGetLoadData(out List<string> data))
+            if (_useSaveLoadLogic && _saveLoadService.TryGetLoadData(out List<string> data))
             {
                 _levelGenerator.GenerateLevelFromSave(data);
             }
