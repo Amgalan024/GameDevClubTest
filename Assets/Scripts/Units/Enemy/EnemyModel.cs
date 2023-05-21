@@ -6,10 +6,13 @@ namespace Enemy
 {
     public class EnemyModel : BaseUnit
     {
-        [SerializeField] private BaseItem _dropItem;
+        [SerializeField] private DropItem _dropItem;
         [SerializeField] private float _speed;
-
-        public BaseItem DropItem => _dropItem;
+        [SerializeField] private int _damage;
+        [SerializeField] private UnitServiceProvider _unitServiceProvider;
+        public DropItem DropItem => _dropItem;
         public float Speed => _speed;
+        public int Damage => _damage;
+        public UnitServiceProvider UnitServiceProvider => _unitServiceProvider;
     }
 }

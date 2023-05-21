@@ -15,11 +15,14 @@ namespace Inventory
         [SerializeField] private Button _deleteItemButton;
 
         public Button DeleteItemButton => _deleteItemButton;
+        public LayoutGroup ItemsLayoutGroup => _itemsLayoutGroup;
 
         private void Awake()
         {
             _openButton.onClick.AddListener(Open);
             _closeButton.onClick.AddListener(Close);
+            
+            _deleteItemButton.gameObject.SetActive(false);
         }
 
         private void OnDestroy()
@@ -28,12 +31,24 @@ namespace Inventory
             _closeButton.onClick.RemoveAllListeners();
         }
 
-        private void Open()
+        public void ShowItemActionButtons(InventoryItemUI itemUI)
+        {
+            _deleteItemButton.gameObject.SetActive(true);
+
+            _deleteItemButton.transform.position = itemUI.transform.position;
+        }
+
+        public void HideItemActionButtons()
+        {
+            _deleteItemButton.gameObject.SetActive(false);
+        }
+
+        public void Open()
         {
             _root.gameObject.SetActive(true);
         }
 
-        private void Close()
+        public void Close()
         {
             _root.gameObject.SetActive(false);
         }

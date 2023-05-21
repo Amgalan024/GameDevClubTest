@@ -21,7 +21,9 @@ namespace Player
 
         private void HandleEnemyInteraction(Collider2D obj)
         {
-            if (obj.TryGetComponent(out EnemyModel enemyModel))
+            var rb = obj.attachedRigidbody;
+
+            if (rb != null && rb.TryGetComponent(out EnemyModel enemyModel))
             {
                 _playerAttackService.SetTarget(enemyModel.transform);
             }
@@ -29,9 +31,13 @@ namespace Player
 
         private void HandleItemInteraction(Collider2D obj)
         {
-            if (obj.TryGetComponent(out BaseItem item))
+            var rb = obj.attachedRigidbody;
+
+            if (rb != null && rb.TryGetComponent(out DropItem item))
             {
-                _inventoryService.AddItem(item);
+                _inventoryService.AddItem(item.ItemBehaviourPrefab, item.Amount);
+
+                item.PickUp();
             }
         }
     }

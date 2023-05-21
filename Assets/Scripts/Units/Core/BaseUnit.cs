@@ -10,29 +10,31 @@ namespace Units
 
         [SerializeField] private int _startHealth;
 
-        private int _currentHealth;
+        public int StartHealth => _startHealth;
+
+        public int CurrentHealth { get; private set; }
 
         private void Awake()
         {
-            _currentHealth = _startHealth;
+            CurrentHealth = _startHealth;
         }
 
         public void ChangeHealth(int value)
         {
-            _currentHealth += value;
+            CurrentHealth += value;
 
-            if (_currentHealth > _startHealth)
+            if (CurrentHealth > _startHealth)
             {
-                _currentHealth = _startHealth;
+                CurrentHealth = _startHealth;
             }
 
-            if (_currentHealth < 0)
+            if (CurrentHealth < 0)
             {
-                _currentHealth = 0;
+                CurrentHealth = 0;
                 OnDeath?.Invoke();
             }
 
-            OnHealthChanged?.Invoke(_currentHealth);
+            OnHealthChanged?.Invoke(CurrentHealth);
         }
     }
 }

@@ -1,11 +1,68 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Enemy;
+using Item;
+using UnityEngine;
 
 namespace Startup
 {
-    public class LevelContainer
+    public class LevelContainer : MonoBehaviour
     {
-        public PlayerModel PlayerModel { get; set; }
-        public List<EnemyModel> EnemyModels { get; } = new List<EnemyModel>();
+        [SerializeField] private PlayerModel _playerModel;
+        [SerializeField] private List<EnemyModel> _enemyModels;
+        [SerializeField] private List<DropItem> _droppedItemsOnScene;
+        
+        public PlayerModel PlayerModel => _playerModel;
+        public IEnumerable<EnemyModel> EnemyModels => _enemyModels.AsEnumerable();
+        public IEnumerable<DropItem> DroppedItemsOnScene => _droppedItemsOnScene.AsEnumerable();
+
+        private readonly Dictionary<EnemyModel, Action> _enemySubscriptions = new Dictionary<EnemyModel, Action>();
+        private readonly Dictionary<DropItem, Action> _itemSubscriptions = new Dictionary<DropItem, Action>();
+
+        public void SetPlayerModel(PlayerModel playerModel)
+        {
+            _playerModel = playerModel;
+        }
+
+        private void Awake()
+        {
+        }
+
+        public void AddEnemyModels(EnemyModel enemyModel)
+        {
+            _enemyModels.Add(enemyModel);
+
+            Action subscription = () => RemoveEnemyModel(enemyModel);
+
+            _enemySubscriptions.Add(enemyModel, subscription);
+
+            enemyModel.OnDeath += subscription;
+        }
+
+        public void RemoveEnemyModel(EnemyModel enemyModel)
+        {
+            _enemyModels.Remove(enemyModel);
+
+            enemyModel.OnDeath -= _enemySubscriptions[enemyModel];
+        }
+
+        public void AddDroppedItem(DropItem dropItem)
+        {
+            _droppedItemsOnScene.Add(dropItem);
+
+            Action subscription = () => RemoveDroppedItem(dropItem);
+
+            _itemSubscriptions.Add(dropItem, subscription);
+
+            dropItem.OnPickedUp += subscription;
+        }
+
+        public void RemoveDroppedItem(DropItem dropItem)
+        {
+            _droppedItemsOnScene.Remove(dropItem);
+
+            dropItem.OnPickedUp -= _itemSubscriptions[dropItem];
+        }
     }
 }

@@ -3,18 +3,24 @@ using UnityEngine;
 
 namespace Enemy
 {
-    public class EnemyMovement : MonoBehaviour
+    public class EnemyMovementService : MonoBehaviour
     {
         [SerializeField] private EnemyModel _enemyModel;
+        [SerializeField] private Rigidbody2D _rigidbody2D;
 
         private Transform _target;
 
         private Coroutine _chaseCoroutine;
-        
+
         public void SetTarget(Transform target)
         {
             _target = target;
-            StopCoroutine(_chaseCoroutine);
+
+            if (_chaseCoroutine != null)
+            {
+                StopCoroutine(_chaseCoroutine);
+            }
+
             _chaseCoroutine = StartCoroutine(ChaseTargetCoroutine());
         }
 
@@ -31,11 +37,23 @@ namespace Enemy
                 var targetPosition = (Vector2) _target.transform.position;
                 var direction = (targetPosition - position).normalized;
 
-                position = Vector2.Lerp(position, position + direction, Time.deltaTime * _enemyModel.Speed);
+                position = position + direction * Time.fixedDeltaTime * _enemyModel.Speed;
 
-                _enemyModel.transform.position = position;
+                _rigidbody2D.MovePosition(position);
 
-                yield return null;
+                var scale = _enemyModel.transform.localScale;
+
+                if (position.x > targetPosition.x)
+                {
+                    scale.x = 1;
+                }
+                else
+                {
+                    scale.x = -1;
+                }
+
+                _enemyModel.transform.localScale = scale;
+                yield return new WaitForFixedUpdate();
             }
         }
     }

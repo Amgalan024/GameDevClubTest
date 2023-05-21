@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Enemy;
-using Tile;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace Startup
 {
@@ -11,39 +10,53 @@ namespace Startup
         [SerializeField] private LevelContainer _levelContainer;
         [SerializeField] private EnemyModel _enemyPrefab;
         [SerializeField] private PlayerModel _playerPrefab;
-        [SerializeField] private List<TileModel> _map;
+
+        [SerializeField] private Tilemap _groundTilemap;
+        [SerializeField] private Tilemap _obstaclesTileMap;
+
         [SerializeField] private int _enemiesCount;
-        [SerializeField] private TileModel _playerSpawnPoint;
+        [SerializeField] private Transform _playerSpawnPoint;
+
+        private List<Vector3Int> _freeTilesPositions;
+
+        private void Awake()
+        {
+            CreateEnemies();
+            CreatePlayer();
+        }
 
         public void CreateEnemies()
         {
-            var freeTiles = GetFreeTiles();
+            _freeTilesPositions = new List<Vector3Int>(_groundTilemap.cellBounds.x * _groundTilemap.cellBounds.y);
+
+            foreach (var position in _groundTilemap.cellBounds.allPositionsWithin)
+            {
+                var tile = _obstaclesTileMap.GetTile(position);
+
+                if (tile == null)
+                {
+                    _freeTilesPositions.Add(position);
+                }
+            }
 
             for (int i = 0; i < _enemiesCount; i++)
             {
-                var randomTileIndex = Random.Range(0, freeTiles.Count);
-                var freeTile = freeTiles[randomTileIndex];
+                var randomIndex = Random.Range(0, _freeTilesPositions.Count);
+                var randomPosition = _freeTilesPositions[randomIndex];
 
-                var enemy = Instantiate(_enemyPrefab, freeTile.transform.position,
-                    Quaternion.identity);
+                var enemy = Instantiate(_enemyPrefab, randomPosition, Quaternion.identity);
 
-                _levelContainer.EnemyModels.Add(enemy);
+                _levelContainer.AddEnemyModels(enemy);
 
-                freeTiles.Remove(freeTile);
+                _freeTilesPositions.Remove(randomPosition);
             }
         }
 
         public void CreatePlayer()
         {
-            _levelContainer.PlayerModel = Instantiate(_playerPrefab, _playerSpawnPoint.transform.position,
-                Quaternion.identity);
-        }
+            var playerModel = Instantiate(_playerPrefab, _playerSpawnPoint.transform.position, Quaternion.identity);
 
-        private List<TileModel> GetFreeTiles()
-        {
-            var freeTiles = _map.Where(a => !a.IsObstacle).ToList(); //сделать класс тайл
-
-            return freeTiles;
+            _levelContainer.SetPlayerModel(playerModel);
         }
     }
 }
