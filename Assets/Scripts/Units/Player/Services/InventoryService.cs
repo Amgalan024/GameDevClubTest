@@ -55,6 +55,15 @@ namespace Inventory
 
         public void AddItem(ItemBehaviour itemBehaviour, int amount)
         {
+            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
+
+            if (itemByIcon.Key != null)
+            {
+                itemByIcon.Value.TryChangeAmount(amount);
+
+                return;
+            }
+
             var icon = GetFreeIcon();
 
             icon.SetInventoryItem(itemBehaviour.Icon, amount);
@@ -96,6 +105,7 @@ namespace Inventory
 
         public void RemoveItem(InventoryItemUI itemIcon)
         {
+            ItemsByIcons[itemIcon].ResetAmount();
             ItemsByIcons[itemIcon].OnAmountChanged -= itemIcon.SetAmount;
 
             itemIcon.SetEmpty();

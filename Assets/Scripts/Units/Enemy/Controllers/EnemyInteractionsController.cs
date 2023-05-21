@@ -78,7 +78,7 @@ namespace Enemy
 
             if (rb != null && rb.TryGetComponent(out PlayerModel playerModel))
             {
-                _enemyMovementService.SetTarget(playerModel.transform);
+                _enemyMovementService.SetTarget(playerModel);
             }
         }
     }

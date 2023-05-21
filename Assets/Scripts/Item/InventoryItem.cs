@@ -35,5 +35,11 @@ namespace Item
 
             return true;
         }
+
+        public void ResetAmount()
+        {
+            Amount = 0;
+            OnAmountChanged?.Invoke(Amount);
+        }
     }
 }

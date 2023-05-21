@@ -16,8 +16,8 @@ TagManager:
   - Tiles
   - PlayerAttack
   - EnemyAttack
-  - 
-  - 
+  - PlayerCollision
+  - EnemyCollision
   - 
   - 
   - 

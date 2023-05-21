@@ -7,6 +7,7 @@ namespace Player
         [SerializeField] private PlayerModel _playerModel;
         [SerializeField] private Transform _visualizationRoot;
         [SerializeField] private Transform[] _colliderRoots;
+        [SerializeField] private Rigidbody2D _rigidbody2D;
 
         private void Awake()
         {
@@ -28,6 +29,9 @@ namespace Player
             {
                 root.gameObject.SetActive(false);
             }
+
+            _rigidbody2D.isKinematic = true;
+            _rigidbody2D.velocity = Vector2.zero;
         }
     }
 }

@@ -183,7 +183,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5016517868883636018}
   - component: {fileID: 5930409957563467927}
-  m_Layer: 6
+  m_Layer: 12
   m_Name: CollisionBox
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -266,6 +266,37 @@ Transform:
   m_Father: {fileID: 2150644909973229704}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &940814871593940034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4319117020943750002}
+  m_Layer: 6
+  m_Name: DropPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4319117020943750002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 940814871593940034}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.43, y: 0.01, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5803288135032233914}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1721020313159051092
 GameObject:
   m_ObjectHideFlags: 0
@@ -344,7 +375,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.41969585, y: -0.288971}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -355,7 +386,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.8393917, y: 1.5779418}
   m_EdgeRadius: 0
 --- !u!114 &6988881448049572319
 MonoBehaviour:
@@ -941,6 +972,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _enemyModel: {fileID: 1750729441386643205}
   _visualizationRoot: {fileID: 1675581188066585476}
+  _colliderRoots:
+  - {fileID: 7560211183868720126}
+  - {fileID: 2337277602921518418}
 --- !u!1 &6344676712768785824
 GameObject:
   m_ObjectHideFlags: 0
@@ -1303,7 +1337,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 4319117020943750002}
   m_Father: {fileID: 3303604495032942272}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1320,6 +1355,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _enemyModel: {fileID: 1750729441386643205}
+  _dropPoint: {fileID: 4319117020943750002}
 --- !u!1 &8945195584196212358
 GameObject:
   m_ObjectHideFlags: 0

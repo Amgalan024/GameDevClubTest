@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Units;
 using UnityEngine;
 
 namespace Enemy
@@ -8,19 +9,17 @@ namespace Enemy
         [SerializeField] private EnemyModel _enemyModel;
         [SerializeField] private Rigidbody2D _rigidbody2D;
 
-        private Transform _target;
+        private BaseUnit _targetUnit;
 
         private Coroutine _chaseCoroutine;
 
-        public void SetTarget(Transform target)
+        public void SetTarget(BaseUnit target)
         {
-            _target = target;
+            StopChasing();
+            ResetTarget();
 
-            if (_chaseCoroutine != null)
-            {
-                StopCoroutine(_chaseCoroutine);
-            }
-
+            _targetUnit = target;
+            _targetUnit.OnDeath += StopChasing;
             _chaseCoroutine = StartCoroutine(ChaseTargetCoroutine());
         }
 
@@ -32,12 +31,21 @@ namespace Enemy
             }
         }
 
+        private void ResetTarget()
+        {
+            if (_targetUnit != null)
+            {
+                _targetUnit.OnDeath -= StopChasing;
+                _targetUnit = null;
+            }
+        }
+
         private IEnumerator ChaseTargetCoroutine()
         {
-            while (_target != null)
+            while (_targetUnit != null)
             {
                 var position = (Vector2) _enemyModel.transform.position;
-                var targetPosition = (Vector2) _target.transform.position;
+                var targetPosition = (Vector2) _targetUnit.transform.position;
                 if (Mathf.Abs(position.magnitude - targetPosition.magnitude) > 0.25f)
                 {
                     var direction = (targetPosition - position).normalized;

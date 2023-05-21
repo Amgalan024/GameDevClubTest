@@ -10,15 +10,18 @@ namespace Player
     public class PlayerInteractionsController : MonoBehaviour
     {
         [SerializeField] private PlayerModel _playerModel;
-        [SerializeField] private TriggerZone _interactionZone;
+        [SerializeField] private TriggerZone _attackRangeZone;
+        [SerializeField] private TriggerZone _itemPickUpZone;
         [SerializeField] private InventoryService _inventoryService;
         [SerializeField] private PlayerAttackService _playerAttackService;
 
         private void Awake()
         {
             _playerModel.OnDeath += OnPlayerDeath;
-            _interactionZone.OnZoneEnter += HandleItemInteraction;
-            _interactionZone.OnZoneEnter += HandleEnemyInteraction;
+            _itemPickUpZone.OnZoneEnter += HandleItemInRange;
+
+            _attackRangeZone.OnZoneEnter += HandleEnemyInRange;
+            _attackRangeZone.OnZoneExit += HandleEnemyOutOfRange;
         }
 
         private void OnDestroy()
@@ -29,21 +32,33 @@ namespace Player
         private void OnPlayerDeath()
         {
             _playerModel.OnDeath -= OnPlayerDeath;
-            _interactionZone.OnZoneEnter -= HandleItemInteraction;
-            _interactionZone.OnZoneEnter -= HandleEnemyInteraction;
+            _itemPickUpZone.OnZoneEnter -= HandleItemInRange;
+
+            _attackRangeZone.OnZoneEnter -= HandleEnemyInRange;
+            _attackRangeZone.OnZoneExit -= HandleEnemyOutOfRange;
         }
 
-        private void HandleEnemyInteraction(Collider2D obj)
+        private void HandleEnemyInRange(Collider2D obj)
         {
             var rb = obj.attachedRigidbody;
 
             if (rb != null && rb.TryGetComponent(out EnemyModel enemyModel))
             {
-                _playerAttackService.SetTarget(enemyModel.transform);
+                _playerAttackService.AddTarget(enemyModel);
             }
         }
 
-        private void HandleItemInteraction(Collider2D obj)
+        private void HandleEnemyOutOfRange(Collider2D obj)
+        {
+            var rb = obj.attachedRigidbody;
+
+            if (rb != null && rb.TryGetComponent(out EnemyModel enemyModel))
+            {
+                _playerAttackService.RemoveTarget(enemyModel);
+            }
+        }
+
+        private void HandleItemInRange(Collider2D obj)
         {
             var rb = obj.attachedRigidbody;
 

@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
+using Units;
 using UnityEngine;
 
 namespace Enemy
@@ -14,11 +14,15 @@ namespace Enemy
 
         private Coroutine _attackCoroutine;
 
-        public void StartAttacking(PlayerModel playerModel)
+        private BaseUnit _targetUnit;
+
+        public void StartAttacking(BaseUnit unit)
         {
             StopAttacking();
-
-            _attackCoroutine = StartCoroutine(AttackCoroutine(playerModel));
+            ResetTarget();
+            _targetUnit = unit;
+            _targetUnit.OnDeath += StopAttacking;
+            _attackCoroutine = StartCoroutine(AttackCoroutine());
         }
 
         public void StopAttacking()
@@ -29,11 +33,20 @@ namespace Enemy
             }
         }
 
-        private IEnumerator AttackCoroutine(PlayerModel playerModel)
+        private void ResetTarget()
         {
-            while (playerModel != null)
+            if (_targetUnit != null)
             {
-                playerModel.ChangeHealth(-_enemyModel.Damage);
+                _targetUnit.OnDeath -= StopAttacking;
+                _targetUnit = null;
+            }
+        }
+
+        private IEnumerator AttackCoroutine()
+        {
+            while (true)
+            {
+                _targetUnit.ChangeHealth(-_enemyModel.Damage);
                 _animator.SetTrigger(AttackTrigger);
 
                 yield return new WaitForSeconds(_interval);

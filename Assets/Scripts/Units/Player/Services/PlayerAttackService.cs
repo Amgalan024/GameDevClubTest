@@ -1,21 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Inventory;
 using Item;
 using Projectile;
 using TMPro;
+using Units;
 using UnityEngine;
 
 namespace Player
 {
     public class PlayerAttackService : MonoBehaviour
     {
+        [SerializeField] private PlayerModel _playerModel;
         [SerializeField] private Transform _weaponAnchor;
         [SerializeField] private InventoryService _inventoryService;
         [SerializeField] private TextMeshProUGUI _ammoText;
 
         private BaseWeapon _weapon;
-        private Transform _target;
         private InventoryItem _requiredAmmo;
+
+        private readonly List<BaseUnit> _targetsInRange = new List<BaseUnit>();
 
         private void Awake()
         {
@@ -24,20 +29,29 @@ namespace Player
 
         public void Shoot()
         {
-            if (_target == null)
+            if (_targetsInRange.Count <= 0 || _weapon == null)
             {
                 return;
             }
 
             if (_inventoryService.TryRemoveItemAmount(_weapon.RequiredAmmo, 1))
             {
-                _weapon.Shoot(_target);
+                var closestTarget =
+                    _targetsInRange.OrderBy(t =>
+                        t.transform.position.magnitude - _playerModel.transform.position.magnitude).First();
+
+                _weapon.Shoot(closestTarget.transform);
             }
         }
 
-        public void SetTarget(Transform target)
+        public void AddTarget(BaseUnit target)
         {
-            _target = target;
+            _targetsInRange.Add(target);
+        }
+
+        public void RemoveTarget(BaseUnit target)
+        {
+            _targetsInRange.Remove(target);
         }
 
         public void SetWeapon(BaseWeapon weapon)
