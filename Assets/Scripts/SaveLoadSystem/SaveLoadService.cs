@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
-using Units.Player.Services;
 using UnityEngine;
 
 namespace Startup
@@ -16,31 +15,22 @@ namespace Startup
         {
             var levelSaveData = new List<string>();
 
-            var playerData = _levelContainer.PlayerModel.GetComponent<BaseSaver>().Save();
-            levelSaveData.Add(playerData);
-
-            foreach (var enemyModel in _levelContainer.EnemyModels)
+            foreach (var saver in _levelContainer.ObjectToSave)
             {
-                var enemyData = enemyModel.GetComponent<BaseSaver>().Save();
-                levelSaveData.Add(enemyData);
-            }
-
-            foreach (var dropItem in _levelContainer.DroppedItemsOnScene)
-            {
-                var itemData = dropItem.GetComponent<BaseSaver>().Save();
-                levelSaveData.Add(itemData);
+                var data = saver.Save();
+                levelSaveData.Add(data);
             }
 
             var json = JsonConvert.SerializeObject(levelSaveData.ToArray());
 
-            System.IO.File.WriteAllText(SavePath, json);
+            File.WriteAllText(SavePath, json);
         }
 
         public bool TryGetLoadData(out List<string> loadData)
         {
-            if (System.IO.File.Exists(SavePath))
+            if (File.Exists(SavePath))
             {
-                var fileString = System.IO.File.ReadAllText(SavePath);
+                var fileString = File.ReadAllText(SavePath);
 
                 loadData = JsonConvert.DeserializeObject<List<string>>(fileString);
 

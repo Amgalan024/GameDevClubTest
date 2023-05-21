@@ -2,7 +2,6 @@
 using System.Linq;
 using Enemy;
 using Item.Data;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -11,23 +10,23 @@ namespace Startup
 {
     public class LevelGenerator : MonoBehaviour
     {
-        [Header("Core")] [SerializeField] private AssetLoadList _assetLoadList;
+        [Header("Core")]
+        [SerializeField] private AssetLoadList _assetLoadList;
         [SerializeField] private LevelContainer _levelContainer;
+        [SerializeField] private Transform _unitsRoot;
 
-        [Header("Player Spawn Data")] [SerializeField]
-        private PlayerModel _playerPrefab;
-
+        [Header("Player Spawn Data")] 
+        [SerializeField] private PlayerModel _playerPrefab;
         [SerializeField] private Transform _playerSpawnPoint;
 
-        [Header("Enemy Spawn Data")] [SerializeField]
-        private EnemyModel _enemyPrefab;
-
+        [Header("Enemy Spawn Data")] 
+        [SerializeField] private EnemyModel _enemyPrefab;
         [SerializeField] private int _enemiesCount;
         [SerializeField] private Tilemap _groundTilemap;
         [SerializeField] private Tilemap _obstaclesTileMap;
 
-        [Header("Item Spawn Data")] [SerializeField]
-        private ItemSpawnData[] _itemSpawnData;
+        [Header("Item Spawn Data")] 
+        [SerializeField] private ItemSpawnData[] _itemSpawnData;
 
         private List<Vector3Int> _freeTilesPositions;
 
@@ -50,7 +49,7 @@ namespace Startup
 
                 var asset = _assetLoadList.Assets.First(a => a.GetComponent<IdentifierHolder>().AssetId == assetId);
 
-                var instantiatedAsset = Instantiate(asset);
+                var instantiatedAsset = Instantiate(asset, _unitsRoot);
 
                 var assetSaver = instantiatedAsset.GetComponent<BaseSaver>();
 
@@ -81,7 +80,9 @@ namespace Startup
 
                 var enemy = Instantiate(_enemyPrefab, randomPosition, Quaternion.identity);
 
-                _levelContainer.AddEnemyModels(enemy);
+                enemy.transform.SetParent(_unitsRoot);
+
+                _levelContainer.AddSavableObject(enemy.GetComponent<BaseSaver>());
 
                 _freeTilesPositions.Remove(randomPosition);
             }
@@ -91,7 +92,9 @@ namespace Startup
         {
             var playerModel = Instantiate(_playerPrefab, _playerSpawnPoint.transform.position, Quaternion.identity);
 
-            _levelContainer.SetPlayerModel(playerModel);
+            playerModel.transform.SetParent(_unitsRoot);
+
+            _levelContainer.AddSavableObject(playerModel.GetComponent<BaseSaver>());
         }
 
         private void CreateItems()
@@ -100,7 +103,9 @@ namespace Startup
             {
                 var dropItem = Instantiate(spawnData.DropItemPrefab, spawnData.SpawnPoint);
 
-                _levelContainer.AddDroppedItem(dropItem);
+                dropItem.transform.SetParent(_unitsRoot);
+
+                _levelContainer.AddSavableObject(dropItem.GetComponent<BaseSaver>());
             }
         }
     }
