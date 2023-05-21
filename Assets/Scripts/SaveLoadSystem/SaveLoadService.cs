@@ -8,13 +8,11 @@ namespace Startup
 {
     public class SaveLoadService : MonoBehaviour
     {
-        [SerializeField] private AssetLoadList _assetLoadList;
-
         [SerializeField] private LevelContainer _levelContainer;
 
         private string SavePath => Application.persistentDataPath + "/Save.json";
 
-        public void Save()
+        public void SaveData()
         {
             var levelSaveData = new List<string>();
 
@@ -36,27 +34,23 @@ namespace Startup
             var json = JsonConvert.SerializeObject(levelSaveData.ToArray());
 
             System.IO.File.WriteAllText(SavePath, json);
-
-            Debug.Log("Save at " + SavePath);
         }
 
-        public void Load()
+        public bool TryGetLoadData(out List<string> loadData)
         {
-            var fileString = System.IO.File.ReadAllText(SavePath);
-            var saveData = JsonConvert.DeserializeObject<List<string>>(fileString);
-            Debug.Log("Loaded");
+            if (System.IO.File.Exists(SavePath))
+            {
+                var fileString = System.IO.File.ReadAllText(SavePath);
+
+                loadData = JsonConvert.DeserializeObject<List<string>>(fileString);
+
+                return true;
+            }
+
+            loadData = null;
+
+            return false;
         }
 
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                Save();
-            }
-            if (Input.GetKeyDown(KeyCode.L))
-            {
-                Load();
-            }
-        }
     }
 }

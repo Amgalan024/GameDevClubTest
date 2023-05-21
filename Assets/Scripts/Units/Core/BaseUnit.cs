@@ -36,5 +36,11 @@ namespace Units
 
             OnHealthChanged?.Invoke(CurrentHealth);
         }
+
+        public void SetHealth(int value)
+        {
+            CurrentHealth = value;
+            OnHealthChanged?.Invoke(CurrentHealth);
+        }
     }
 }

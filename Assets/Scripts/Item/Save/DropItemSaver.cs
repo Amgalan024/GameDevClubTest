@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Startup;
 using UnityEngine;
 
@@ -7,6 +8,16 @@ namespace Item.Save
     public class DropItemSaver : BaseSaver
     {
         [SerializeField] private DropItem _dropItem;
+
+        private void Awake()
+        {
+            _dropItem.OnPickedUp += InvokeOnDeleted;
+        }
+
+        private void OnDestroy()
+        {
+            _dropItem.OnPickedUp -= InvokeOnDeleted;
+        }
 
         public override string Save()
         {
@@ -17,8 +28,11 @@ namespace Item.Save
             return json;
         }
 
-        public override void Load(string saveData)
+        public override void Load(string json)
         {
+            var dropItemSaveData = JsonConvert.DeserializeObject<DropItemSaveData>(json);
+
+            _dropItem.transform.position = dropItemSaveData.Position.ToVector();
         }
     }
 }

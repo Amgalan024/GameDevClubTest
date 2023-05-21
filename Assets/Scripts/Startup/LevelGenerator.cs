@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Enemy;
+using Item.Data;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -7,25 +11,56 @@ namespace Startup
 {
     public class LevelGenerator : MonoBehaviour
     {
+        [Header("Core")] [SerializeField] private AssetLoadList _assetLoadList;
         [SerializeField] private LevelContainer _levelContainer;
-        [SerializeField] private EnemyModel _enemyPrefab;
-        [SerializeField] private PlayerModel _playerPrefab;
 
+        [Header("Player Spawn Data")] [SerializeField]
+        private PlayerModel _playerPrefab;
+
+        [SerializeField] private Transform _playerSpawnPoint;
+
+        [Header("Enemy Spawn Data")] [SerializeField]
+        private EnemyModel _enemyPrefab;
+
+        [SerializeField] private int _enemiesCount;
         [SerializeField] private Tilemap _groundTilemap;
         [SerializeField] private Tilemap _obstaclesTileMap;
 
-        [SerializeField] private int _enemiesCount;
-        [SerializeField] private Transform _playerSpawnPoint;
+        [Header("Item Spawn Data")] [SerializeField]
+        private ItemSpawnData[] _itemSpawnData;
 
         private List<Vector3Int> _freeTilesPositions;
 
-        private void Awake()
+        public void GenerateInitialLevel()
         {
             CreateEnemies();
             CreatePlayer();
+            CreateItems();
         }
 
-        public void CreateEnemies()
+        public void GenerateLevelFromSave(List<string> loadData)
+        {
+            foreach (var json in loadData)
+            {
+                var data = JObject.Parse(json);
+
+                var jToken = data.GetValue("AssetId");
+
+                var assetId = jToken.Value<string>();
+
+                var asset = _assetLoadList.Assets.First(a => a.GetComponent<IdentifierHolder>().AssetId == assetId);
+
+                var instantiatedAsset = Instantiate(asset);
+
+                var assetSaver = instantiatedAsset.GetComponent<BaseSaver>();
+
+                assetSaver.Load(json);
+
+                _levelContainer.AddSavableObject(assetSaver);
+            }
+        }
+
+        private void CreateEnemies()
         {
             _freeTilesPositions = new List<Vector3Int>(_groundTilemap.cellBounds.x * _groundTilemap.cellBounds.y);
 
@@ -52,11 +87,21 @@ namespace Startup
             }
         }
 
-        public void CreatePlayer()
+        private void CreatePlayer()
         {
             var playerModel = Instantiate(_playerPrefab, _playerSpawnPoint.transform.position, Quaternion.identity);
 
             _levelContainer.SetPlayerModel(playerModel);
+        }
+
+        private void CreateItems()
+        {
+            foreach (var spawnData in _itemSpawnData)
+            {
+                var dropItem = Instantiate(spawnData.DropItemPrefab, spawnData.SpawnPoint);
+
+                _levelContainer.AddDroppedItem(dropItem);
+            }
         }
     }
 }

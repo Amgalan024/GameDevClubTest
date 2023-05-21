@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Item;
 using UnityEngine;
@@ -32,7 +33,10 @@ namespace Inventory
             }
 
             _inventoryUI.DeleteItemButton.onClick.AddListener(() => { RemoveItem(_activeIcon); });
+        }
 
+        private void Start()
+        {
             _inventoryUI.Close();
         }
 

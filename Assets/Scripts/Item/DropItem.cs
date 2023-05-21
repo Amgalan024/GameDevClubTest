@@ -15,9 +15,9 @@ namespace Item
 
         public void PickUp()
         {
-            Destroy(gameObject);
-
             OnPickedUp?.Invoke();
+            
+            Destroy(gameObject);
         }
 
         private void OnValidate()
