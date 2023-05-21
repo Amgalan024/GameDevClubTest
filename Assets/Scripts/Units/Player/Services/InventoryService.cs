@@ -9,6 +9,9 @@ namespace Inventory
 {
     public class InventoryService : MonoBehaviour
     {
+        public event Action<InventoryItem> OnItemAdded;
+        public event Action<InventoryItem> OnItemRemoved;
+
         [SerializeField] private PlayerModel _playerModel;
         [SerializeField] private InventoryUI _inventoryUI;
         [SerializeField] private InventoryItemUI _inventoryItemPrefab;
@@ -28,12 +31,13 @@ namespace Inventory
                 var icon = Instantiate(_inventoryItemPrefab, _inventoryUI.ItemsLayoutGroup.transform);
                 icon.SetEmpty();
                 _icons.Add(icon);
-
-                icon.OnClicked += SetIconActive;
-                icon.OnClicked += _inventoryUI.ShowItemActionButtons;
             }
 
-            _inventoryUI.DeleteItemButton.onClick.AddListener(() => { RemoveItem(_activeIcon); });
+            _inventoryUI.DeleteItemButton.onClick.AddListener(() =>
+            {
+                RemoveItem(_activeIcon);
+                _inventoryUI.HideItemActionButtons();
+            });
 
             _playerModel.OnDeath += OnPlayerDeath;
         }
@@ -61,6 +65,8 @@ namespace Inventory
             {
                 itemByIcon.Value.TryChangeAmount(amount);
 
+                OnItemAdded?.Invoke(itemByIcon.Value);
+
                 return;
             }
 
@@ -68,13 +74,18 @@ namespace Inventory
 
             icon.SetInventoryItem(itemBehaviour.Icon, amount);
 
+            icon.OnClicked += SetIconActive;
+            icon.OnClicked += _inventoryUI.ShowItemActionButtons;
+
             var inventoryItem = new InventoryItem(itemBehaviour, amount);
 
             inventoryItem.OnAmountChanged += icon.SetAmount;
 
             ItemsByIcons.Add(icon, inventoryItem);
 
-            itemBehaviour.OnAdded(_playerModel);
+            itemBehaviour.OnAdded(_playerModel, inventoryItem);
+
+            OnItemAdded?.Invoke(inventoryItem);
         }
 
         public InventoryItem GetItemByBehaviour(ItemBehaviour itemBehaviour)
@@ -108,7 +119,13 @@ namespace Inventory
             ItemsByIcons[itemIcon].ResetAmount();
             ItemsByIcons[itemIcon].OnAmountChanged -= itemIcon.SetAmount;
 
+            itemIcon.OnClicked -= SetIconActive;
+            itemIcon.OnClicked -= _inventoryUI.ShowItemActionButtons;
+
             itemIcon.SetEmpty();
+
+            OnItemRemoved?.Invoke(ItemsByIcons[itemIcon]);
+
             ItemsByIcons.Remove(itemIcon);
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Item;
 using Player;
 using Projectile;
 using UnityEngine;
@@ -20,7 +21,7 @@ namespace Weapon
         private IEnumerator MoveProjectileCoroutine(ProjectileModel projectile, Transform target)
         {
             var targetPosition = target.position;
-            
+
             while (true)
             {
                 projectile.transform.position = Vector3.Lerp(projectile.transform.position, targetPosition,
@@ -30,20 +31,20 @@ namespace Weapon
             }
         }
 
-        public override void Use(PlayerModel playerModel)
+        public override void Use(PlayerModel playerModel, InventoryItem correspondedInventoryItem)
         {
             var attackService = playerModel.UnitServiceProvider.GetService<PlayerAttackService>();
 
-            attackService.SetWeapon(this);
+            attackService.SetWeapon(this, correspondedInventoryItem);
         }
 
-        public override void OnAdded(PlayerModel playerModel)
+        public override void OnAdded(PlayerModel playerModel, InventoryItem correspondedInventoryItem)
         {
             var attackService = playerModel.UnitServiceProvider.GetService<PlayerAttackService>();
 
             if (attackService.IsWeaponEquipped() == false)
             {
-                Use(playerModel);
+                Use(playerModel, correspondedInventoryItem);
             }
         }
 

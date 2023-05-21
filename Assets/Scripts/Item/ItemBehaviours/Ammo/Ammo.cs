@@ -2,9 +2,8 @@
 {
     public class Ammo : ItemBehaviour
     {
-        public override void Use(PlayerModel playerModel)
+        public override void Use(PlayerModel playerModel, InventoryItem correspondedInventoryItem)
         {
-            
         }
     }
 }

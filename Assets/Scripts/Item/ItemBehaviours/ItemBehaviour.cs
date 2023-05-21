@@ -7,9 +7,9 @@ namespace Item
         [SerializeField] private Sprite _icon;
         public Sprite Icon => _icon;
 
-        public abstract void Use(PlayerModel playerModel);
+        public abstract void Use(PlayerModel playerModel, InventoryItem correspondedInventoryItem);
 
-        public virtual void OnAdded(PlayerModel playerModel)
+        public virtual void OnAdded(PlayerModel playerModel, InventoryItem correspondedInventoryItem)
         {
         }
 

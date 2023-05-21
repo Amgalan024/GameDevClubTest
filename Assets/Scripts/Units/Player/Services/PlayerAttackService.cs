@@ -17,30 +17,39 @@ namespace Player
         [SerializeField] private InventoryService _inventoryService;
         [SerializeField] private TextMeshProUGUI _ammoText;
 
-        private BaseWeapon _weapon;
-        private InventoryItem _requiredAmmo;
+        private BaseWeapon _weaponBehaviour;
+        private InventoryItem _inventoryAmmoItem;
+        private InventoryItem _inventoryWeaponItem;
 
         private readonly List<BaseUnit> _targetsInRange = new List<BaseUnit>();
 
         private void Awake()
         {
-            SetAmmoText(0);
+            SetInventoryAmmoItemText(0);
+            _inventoryService.OnItemAdded += OnItemAdded;
+            _inventoryService.OnItemRemoved += OnItemRemoved;
+        }
+
+        private void OnDestroy()
+        {
+            _inventoryService.OnItemAdded -= OnItemAdded;
+            _inventoryService.OnItemRemoved -= OnItemRemoved;
         }
 
         public void Shoot()
         {
-            if (_targetsInRange.Count <= 0 || _weapon == null)
+            if (_targetsInRange.Count <= 0 || IsWeaponEquipped() == false)
             {
                 return;
             }
 
-            if (_inventoryService.TryRemoveItemAmount(_weapon.RequiredAmmo, 1))
+            if (_inventoryService.TryRemoveItemAmount(_weaponBehaviour.RequiredAmmo, 1))
             {
                 var closestTarget =
                     _targetsInRange.OrderBy(t =>
                         t.transform.position.magnitude - _playerModel.transform.position.magnitude).First();
 
-                _weapon.Shoot(closestTarget.transform);
+                _weaponBehaviour.Shoot(closestTarget.transform);
             }
         }
 
@@ -54,25 +63,62 @@ namespace Player
             _targetsInRange.Remove(target);
         }
 
-        public void SetWeapon(BaseWeapon weapon)
+        public void SetWeapon(BaseWeapon weapon, InventoryItem inventoryWeapon)
         {
-            if (_requiredAmmo != null)
+            if (_inventoryAmmoItem != null)
             {
-                _requiredAmmo.OnAmountChanged -= SetAmmoText;
+                _inventoryAmmoItem.OnAmountChanged -= SetInventoryAmmoItemText;
             }
 
-            _weapon = Instantiate(weapon, _weaponAnchor);
-            _requiredAmmo = _inventoryService.GetItemByBehaviour(_weapon.RequiredAmmo);
-            _requiredAmmo.OnAmountChanged += SetAmmoText;
-            SetAmmoText(_requiredAmmo.Amount);
+            _inventoryWeaponItem = inventoryWeapon;
+
+            _weaponBehaviour = Instantiate(weapon, _weaponAnchor);
+
+            _inventoryAmmoItem = _inventoryService.GetItemByBehaviour(_weaponBehaviour.RequiredAmmo);
+
+            if (_inventoryAmmoItem != null)
+            {
+                _inventoryAmmoItem.OnAmountChanged += SetInventoryAmmoItemText;
+                SetInventoryAmmoItemText(_inventoryAmmoItem.Amount);
+            }
+            else
+            {
+                SetInventoryAmmoItemText(0);
+            }
         }
 
         public bool IsWeaponEquipped()
         {
-            return _weapon != null;
+            return _weaponBehaviour != null;
         }
 
-        private void SetAmmoText(int value)
+        private void OnItemAdded(InventoryItem inventoryItem)
+        {
+            if (_inventoryAmmoItem == null && IsWeaponEquipped() &&
+                inventoryItem.ItemBehaviour == _weaponBehaviour.RequiredAmmo)
+            {
+                _inventoryAmmoItem = inventoryItem;
+                _inventoryAmmoItem.OnAmountChanged += SetInventoryAmmoItemText;
+                SetInventoryAmmoItemText(_inventoryAmmoItem.Amount);
+            }
+        }
+
+        private void OnItemRemoved(InventoryItem inventoryItem)
+        {
+            if (_inventoryAmmoItem == inventoryItem)
+            {
+                _inventoryAmmoItem = null;
+            }
+
+            if (_inventoryWeaponItem == inventoryItem)
+            {
+                _inventoryWeaponItem = null;
+
+                Destroy(_weaponBehaviour.gameObject);
+            }
+        }
+
+        private void SetInventoryAmmoItemText(int value)
         {
             _ammoText.text = value.ToString();
         }
