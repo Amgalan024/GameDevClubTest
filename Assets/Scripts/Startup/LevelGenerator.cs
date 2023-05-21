@@ -1,40 +1,47 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Enemy;
 using Item.Data;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 
 namespace Startup
 {
     public class LevelGenerator : MonoBehaviour
     {
-        [Header("Core")]
-        [SerializeField] private AssetLoadList _assetLoadList;
+        public event Action OnLevelGenerated;
+        
+        [Header("Core")] [SerializeField] private AssetLoadList _assetLoadList;
         [SerializeField] private LevelContainer _levelContainer;
         [SerializeField] private Transform _unitsRoot;
 
-        [Header("Player Spawn Data")] 
-        [SerializeField] private PlayerModel _playerPrefab;
+        [Header("Player Spawn Data")] [SerializeField]
+        private PlayerModel _playerPrefab;
+
         [SerializeField] private Transform _playerSpawnPoint;
 
-        [Header("Enemy Spawn Data")] 
-        [SerializeField] private EnemyModel _enemyPrefab;
+        [Header("Enemy Spawn Data")] [SerializeField]
+        private EnemyModel _enemyPrefab;
+
         [SerializeField] private int _enemiesCount;
         [SerializeField] private Tilemap _groundTilemap;
         [SerializeField] private Tilemap _obstaclesTileMap;
 
-        [Header("Item Spawn Data")] 
-        [SerializeField] private ItemSpawnData[] _itemSpawnData;
+        [Header("Item Spawn Data")] [SerializeField]
+        private ItemSpawnData[] _itemSpawnData;
 
         private List<Vector3Int> _freeTilesPositions;
 
-        public void GenerateInitialLevel()
+        public void GenerateDefaultLevel()
         {
             CreateEnemies();
             CreatePlayer();
             CreateItems();
+            
+            OnLevelGenerated?.Invoke();
         }
 
         public void GenerateLevelFromSave(List<string> loadData)
@@ -57,6 +64,8 @@ namespace Startup
 
                 _levelContainer.AddSavableObject(assetSaver);
             }
+            
+            OnLevelGenerated?.Invoke();
         }
 
         private void CreateEnemies()
@@ -65,9 +74,10 @@ namespace Startup
 
             foreach (var position in _groundTilemap.cellBounds.allPositionsWithin)
             {
-                var tile = _obstaclesTileMap.GetTile(position);
+                var obstacleTile = _obstaclesTileMap.GetTile(position);
+                var groundTile = _groundTilemap.GetTile(position);
 
-                if (tile == null)
+                if (groundTile != null && obstacleTile == null)
                 {
                     _freeTilesPositions.Add(position);
                 }

@@ -26,33 +26,40 @@ namespace Enemy
 
         public void StopChasing()
         {
-            StopCoroutine(_chaseCoroutine);
+            if (_chaseCoroutine != null)
+            {
+                StopCoroutine(_chaseCoroutine);
+            }
         }
 
         private IEnumerator ChaseTargetCoroutine()
         {
-            while (true)
+            while (_target != null)
             {
                 var position = (Vector2) _enemyModel.transform.position;
                 var targetPosition = (Vector2) _target.transform.position;
-                var direction = (targetPosition - position).normalized;
-
-                position = position + direction * Time.fixedDeltaTime * _enemyModel.Speed;
-
-                _rigidbody2D.MovePosition(position);
-
-                var scale = _enemyModel.transform.localScale;
-
-                if (position.x > targetPosition.x)
+                if (Mathf.Abs(position.magnitude - targetPosition.magnitude) > 0.25f)
                 {
-                    scale.x = 1;
-                }
-                else
-                {
-                    scale.x = -1;
+                    var direction = (targetPosition - position).normalized;
+
+                    position = position + direction * Time.fixedDeltaTime * _enemyModel.Speed;
+
+                    _rigidbody2D.MovePosition(position);
+
+                    var scale = _enemyModel.transform.localScale;
+
+                    if (position.x > targetPosition.x)
+                    {
+                        scale.x = -1;
+                    }
+                    else
+                    {
+                        scale.x = 1;
+                    }
+
+                    _enemyModel.transform.localScale = scale;
                 }
 
-                _enemyModel.transform.localScale = scale;
                 yield return new WaitForFixedUpdate();
             }
         }

@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using Item.Ammo;
 using Player;
 using Projectile;
 using UnityEngine;
@@ -8,10 +7,8 @@ namespace Weapon
 {
     public class Gun : BaseWeapon
     {
-   
         [SerializeField] private ProjectileModel _projectilePrefab;
         [SerializeField] private Transform _shootPoint;
-
 
         public override void Shoot(Transform target)
         {
@@ -22,9 +19,11 @@ namespace Weapon
 
         private IEnumerator MoveProjectileCoroutine(ProjectileModel projectile, Transform target)
         {
+            var targetPosition = target.position;
+            
             while (true)
             {
-                projectile.transform.position = Vector3.Lerp(projectile.transform.position, target.position,
+                projectile.transform.position = Vector3.Lerp(projectile.transform.position, targetPosition,
                     projectile.Speed * Time.deltaTime);
 
                 yield return null;

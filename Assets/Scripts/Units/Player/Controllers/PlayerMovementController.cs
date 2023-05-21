@@ -14,24 +14,38 @@ namespace Player
 
         private void Awake()
         {
+            _playerModel.OnDeath += OnPlayerDeath;
             _joyStickUI.OnMoveStarted += StartMoving;
             _joyStickUI.OnMoveEnded += StopMoving;
         }
 
         private void OnDestroy()
         {
+            OnPlayerDeath();
+        }
+
+        private void OnPlayerDeath()
+        {
+            StopMoving();
+
+            _playerModel.OnDeath -= OnPlayerDeath;
             _joyStickUI.OnMoveStarted -= StartMoving;
             _joyStickUI.OnMoveEnded -= StopMoving;
         }
 
         private void StartMoving()
         {
+            StopMoving();
+
             _moveCoroutine = StartCoroutine(MovePlayerCoroutine());
         }
 
         private void StopMoving()
         {
-            StopCoroutine(_moveCoroutine);
+            if (_moveCoroutine != null)
+            {
+                StopCoroutine(_moveCoroutine);
+            }
         }
 
         private IEnumerator MovePlayerCoroutine()

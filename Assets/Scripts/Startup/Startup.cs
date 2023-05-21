@@ -7,37 +7,17 @@ namespace Startup
     {
         [SerializeField] private LevelGenerator _levelGenerator;
         [SerializeField] private SaveLoadService _saveLoadService;
-
+        [SerializeField] private bool _loadSaveFile;
+        
         private void Start()
         {
-            // if (_saveLoadService.TryGetLoadData(out List<string> data))
-            // {
-            //     _levelGenerator.GenerateLevelFromSave(data);
-            // }
-            // else
-            // {
-            //     _levelGenerator.GenerateInitialLevel();
-            // }
-        }
-
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.S))
+            if (_loadSaveFile && _saveLoadService.TryGetLoadData(out List<string> data))
             {
-                _saveLoadService.SaveData();
+                _levelGenerator.GenerateLevelFromSave(data);
             }
-
-            if (Input.GetKeyDown(KeyCode.L))
+            else
             {
-                if (_saveLoadService.TryGetLoadData(out List<string> data))
-                {
-                    _levelGenerator.GenerateLevelFromSave(data);
-                }
-            }
-
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                _levelGenerator.GenerateInitialLevel();
+                _levelGenerator.GenerateDefaultLevel();
             }
         }
     }

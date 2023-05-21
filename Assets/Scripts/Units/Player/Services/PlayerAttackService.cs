@@ -1,6 +1,8 @@
-﻿using Inventory;
+﻿using System;
+using Inventory;
+using Item;
 using Projectile;
-using UnityEditor.UIElements;
+using TMPro;
 using UnityEngine;
 
 namespace Player
@@ -9,9 +11,16 @@ namespace Player
     {
         [SerializeField] private Transform _weaponAnchor;
         [SerializeField] private InventoryService _inventoryService;
+        [SerializeField] private TextMeshProUGUI _ammoText;
 
         private BaseWeapon _weapon;
         private Transform _target;
+        private InventoryItem _requiredAmmo;
+
+        private void Awake()
+        {
+            SetAmmoText(0);
+        }
 
         public void Shoot()
         {
@@ -20,8 +29,10 @@ namespace Player
                 return;
             }
 
-            _weapon.Shoot(_target);
-            _inventoryService.RemoveItemAmount(_weapon.RequiredAmmo, 1);
+            if (_inventoryService.TryRemoveItemAmount(_weapon.RequiredAmmo, 1))
+            {
+                _weapon.Shoot(_target);
+            }
         }
 
         public void SetTarget(Transform target)
@@ -31,12 +42,25 @@ namespace Player
 
         public void SetWeapon(BaseWeapon weapon)
         {
+            if (_requiredAmmo != null)
+            {
+                _requiredAmmo.OnAmountChanged -= SetAmmoText;
+            }
+
             _weapon = Instantiate(weapon, _weaponAnchor);
+            _requiredAmmo = _inventoryService.GetItemByBehaviour(_weapon.RequiredAmmo);
+            _requiredAmmo.OnAmountChanged += SetAmmoText;
+            SetAmmoText(_requiredAmmo.Amount);
         }
 
         public bool IsWeaponEquipped()
         {
             return _weapon != null;
+        }
+
+        private void SetAmmoText(int value)
+        {
+            _ammoText.text = value.ToString();
         }
     }
 }

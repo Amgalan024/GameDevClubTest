@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Item;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Inventory
@@ -33,6 +34,8 @@ namespace Inventory
             }
 
             _inventoryUI.DeleteItemButton.onClick.AddListener(() => { RemoveItem(_activeIcon); });
+
+            _playerModel.OnDeath += OnPlayerDeath;
         }
 
         private void Start()
@@ -40,14 +43,14 @@ namespace Inventory
             _inventoryUI.Close();
         }
 
+        private void OnDestroy()
+        {
+            OnPlayerDeath();
+        }
+
         private void SetIconActive(InventoryItemUI inventoryItemUI)
         {
             _activeIcon = inventoryItemUI;
-        }
-
-        private void OnDestroy()
-        {
-            _inventoryUI.DeleteItemButton.onClick.RemoveAllListeners();
         }
 
         public void AddItem(ItemBehaviour itemBehaviour, int amount)
@@ -65,23 +68,56 @@ namespace Inventory
             itemBehaviour.OnAdded(_playerModel);
         }
 
+        public InventoryItem GetItemByBehaviour(ItemBehaviour itemBehaviour)
+        {
+            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
+
+            return itemByIcon.Value;
+        }
+
+        public bool TryRemoveItemAmount(ItemBehaviour itemBehaviour, int amount)
+        {
+            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
+
+            if (itemByIcon.Key != null && itemByIcon.Value.TryChangeAmount(-amount))
+            {
+                if (itemByIcon.Value.Amount <= 0)
+                {
+                    RemoveItem(itemByIcon.Key);
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void RemoveItem(InventoryItemUI itemIcon)
         {
+            ItemsByIcons[itemIcon].OnAmountChanged -= itemIcon.SetAmount;
+
             itemIcon.SetEmpty();
             ItemsByIcons.Remove(itemIcon);
         }
 
-        public void RemoveItemAmount(ItemBehaviour itemBehaviour, int amount)
+        private void OnPlayerDeath()
         {
-            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
-
-            itemByIcon.Value.ChangeAmount(-amount);
-
-            if (itemByIcon.Value.Amount <= 0)
+            foreach (var icon in _icons)
             {
-                itemByIcon.Key.SetEmpty();
-                ItemsByIcons.Remove(itemByIcon.Key);
+                icon.OnClicked -= SetIconActive;
+                icon.OnClicked -= _inventoryUI.ShowItemActionButtons;
             }
+
+            foreach (var itemByIcon in ItemsByIcons)
+            {
+                itemByIcon.Value.OnAmountChanged -= itemByIcon.Key.SetAmount;
+            }
+
+            _inventoryUI.DeleteItemButton.onClick.RemoveAllListeners();
+
+            _playerModel.OnDeath -= OnPlayerDeath;
         }
 
         private InventoryItemUI GetFreeIcon()

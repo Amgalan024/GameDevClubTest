@@ -4,7 +4,7 @@ namespace Item
 {
     public class InventoryItem
     {
-        public event Action<int> OnAmountChanged; 
+        public event Action<int> OnAmountChanged;
         public ItemBehaviour ItemBehaviour { get; }
         public int Amount { get; private set; }
 
@@ -20,10 +20,20 @@ namespace Item
             Amount = dropItem.Amount;
         }
 
-        public void ChangeAmount(int value)
+        public bool TryChangeAmount(int value)
         {
+            var startAmount = Amount;
             Amount += value;
+
+            if (Amount < 0)
+            {
+                Amount = startAmount;
+                return false;
+            }
+
             OnAmountChanged?.Invoke(Amount);
+
+            return true;
         }
     }
 }

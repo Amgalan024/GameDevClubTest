@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Enemy
 {
@@ -11,9 +12,16 @@ namespace Enemy
             _enemyModel.OnDeath += DropItem;
         }
 
+        private void OnDestroy()
+        {
+            _enemyModel.OnDeath -= DropItem;
+        }
+
         private void DropItem()
         {
             var droppedItem = Instantiate(_enemyModel.DropItem, transform.position, Quaternion.identity);
+            
+            _enemyModel.OnDeath -= DropItem;
         }
     }
 }

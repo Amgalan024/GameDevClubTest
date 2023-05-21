@@ -24,6 +24,8 @@ namespace Startup
             var json = JsonConvert.SerializeObject(levelSaveData.ToArray());
 
             File.WriteAllText(SavePath, json);
+            
+            Debug.Log("SavedData");
         }
 
         public bool TryGetLoadData(out List<string> loadData)
@@ -42,5 +44,9 @@ namespace Startup
             return false;
         }
 
+        public void ClearData()
+        {
+            File.Delete(SavePath);
+        }
     }
 }
