@@ -399,7 +399,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelGenerator: {fileID: 1009558357}
   _saveLoadService: {fileID: 1252021675}
-  _useSaveLoadLogic: 0
+  _useSaveLoadLogic: 1
 --- !u!1 &742626876
 GameObject:
   m_ObjectHideFlags: 0
