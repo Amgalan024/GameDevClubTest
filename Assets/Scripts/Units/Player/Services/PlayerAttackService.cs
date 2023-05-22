@@ -43,7 +43,7 @@ namespace Player
                 return;
             }
 
-            if (_inventoryService.TryRemoveItemAmount(_weaponBehaviour.RequiredAmmo, 1))
+            if (_inventoryAmmoItem != null && _inventoryAmmoItem.TryChangeAmount(-1))
             {
                 var closestTarget =
                     _targetsInRange.OrderBy(t =>
@@ -74,7 +74,7 @@ namespace Player
 
             _weaponBehaviour = Instantiate(weapon, _weaponAnchor);
 
-            _inventoryAmmoItem = _inventoryService.GetItemByBehaviour(_weaponBehaviour.RequiredAmmo);
+            _inventoryAmmoItem = _inventoryService.GetInventoryItemByBehaviour(_weaponBehaviour.RequiredAmmo);
 
             if (_inventoryAmmoItem != null)
             {

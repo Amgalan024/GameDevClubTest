@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Item;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Inventory
@@ -21,6 +20,9 @@ namespace Inventory
             new Dictionary<InventoryItemUI, InventoryItem>();
 
         private readonly List<InventoryItemUI> _icons = new List<InventoryItemUI>();
+
+        private readonly Dictionary<InventoryItem, Action<int>> _amountChangedSubscriptions =
+            new Dictionary<InventoryItem, Action<int>>();
 
         private InventoryItemUI _activeIcon;
 
@@ -55,17 +57,18 @@ namespace Inventory
         private void SetIconActive(InventoryItemUI inventoryItemUI)
         {
             _activeIcon = inventoryItemUI;
+            _inventoryUI.ShowItemActionButtons(inventoryItemUI);
         }
 
         public void AddItem(ItemBehaviour itemBehaviour, int amount)
         {
-            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
+            var existingInventoryItem = GetInventoryItemByBehaviour(itemBehaviour);
 
-            if (itemByIcon.Key != null)
+            if (existingInventoryItem != null)
             {
-                itemByIcon.Value.TryChangeAmount(amount);
+                existingInventoryItem.TryChangeAmount(amount);
 
-                OnItemAdded?.Invoke(itemByIcon.Value);
+                OnItemAdded?.Invoke(existingInventoryItem);
 
                 return;
             }
@@ -75,11 +78,14 @@ namespace Inventory
             icon.SetInventoryItem(itemBehaviour.Icon, amount);
 
             icon.OnClicked += SetIconActive;
-            icon.OnClicked += _inventoryUI.ShowItemActionButtons;
 
             var inventoryItem = new InventoryItem(itemBehaviour, amount);
 
-            inventoryItem.OnAmountChanged += icon.SetAmount;
+            Action<int> subscription = amount => { OnItemAmountChanged(icon, amount); };
+
+            inventoryItem.OnAmountChanged += subscription;
+
+            _amountChangedSubscriptions.Add(inventoryItem, subscription);
 
             ItemsByIcons.Add(icon, inventoryItem);
 
@@ -88,45 +94,35 @@ namespace Inventory
             OnItemAdded?.Invoke(inventoryItem);
         }
 
-        public InventoryItem GetItemByBehaviour(ItemBehaviour itemBehaviour)
+        public InventoryItem GetInventoryItemByBehaviour(ItemBehaviour itemBehaviour)
         {
             var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
 
             return itemByIcon.Value;
         }
 
-        public bool TryRemoveItemAmount(ItemBehaviour itemBehaviour, int amount)
-        {
-            var itemByIcon = ItemsByIcons.FirstOrDefault(i => i.Value.ItemBehaviour == itemBehaviour);
-
-            if (itemByIcon.Key != null && itemByIcon.Value.TryChangeAmount(-amount))
-            {
-                if (itemByIcon.Value.Amount <= 0)
-                {
-                    RemoveItem(itemByIcon.Key);
-                }
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         public void RemoveItem(InventoryItemUI itemIcon)
         {
-            ItemsByIcons[itemIcon].ResetAmount();
-            ItemsByIcons[itemIcon].OnAmountChanged -= itemIcon.SetAmount;
+            var inventoryItem = ItemsByIcons[itemIcon];
+            inventoryItem.OnAmountChanged -= _amountChangedSubscriptions[ItemsByIcons[itemIcon]];
+            inventoryItem.ResetAmount();
 
             itemIcon.OnClicked -= SetIconActive;
-            itemIcon.OnClicked -= _inventoryUI.ShowItemActionButtons;
-
             itemIcon.SetEmpty();
 
-            OnItemRemoved?.Invoke(ItemsByIcons[itemIcon]);
+            OnItemRemoved?.Invoke(inventoryItem);
 
             ItemsByIcons.Remove(itemIcon);
+        }
+
+        private void OnItemAmountChanged(InventoryItemUI itemIcon, int amount)
+        {
+            itemIcon.SetAmount(amount);
+
+            if (amount <= 0)
+            {
+                RemoveItem(itemIcon);
+            }
         }
 
         private void OnPlayerDeath()
@@ -134,12 +130,11 @@ namespace Inventory
             foreach (var icon in _icons)
             {
                 icon.OnClicked -= SetIconActive;
-                icon.OnClicked -= _inventoryUI.ShowItemActionButtons;
             }
 
             foreach (var itemByIcon in ItemsByIcons)
             {
-                itemByIcon.Value.OnAmountChanged -= itemByIcon.Key.SetAmount;
+                itemByIcon.Value.OnAmountChanged -= _amountChangedSubscriptions[itemByIcon.Value];
             }
 
             _inventoryUI.DeleteItemButton.onClick.RemoveAllListeners();
